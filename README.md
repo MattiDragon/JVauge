@@ -15,7 +15,7 @@
 - \* rainbow mode
 - 2 set to 2d mode: push pop left and right act on the stack of values
 - 1 set to 1d mode: push pop left and right act on the stack of stacks
-- t set the accumulator to true
-- f set the accumulator to false
+- t push true
+- f push false
 - ( start bf style loop
 - ) end bf style loop

@@ -35,10 +35,7 @@ public class Program {
         for (int i = 0; i < instructions.size(); i++) {
             var instruction = instructions.get(i);
             switch (instruction) {
-                case ADD -> {
-                    var stack = state.data.get(0);
-                    state.accumulator = stack.remove(0).add(state.accumulator);
-                }
+                case ADD -> state.accumulator = state.pop().add(state.accumulator);
                 case DECREMENT -> state.accumulator = state.accumulator.decrement();
                 case PRINT -> {
                     var chars = state.accumulator.getValue().toCharArray();
@@ -68,22 +65,19 @@ public class Program {
                     List<?> stack = state.is2d ? state.data : state.data.get(0);
                     left(stack);
                 }
-                case NAND -> {
-                    var stack = state.data.get(0);
-                    state.accumulator = stack.remove(0).nand(state.accumulator);
-                }
+                case NAND -> state.accumulator = state.pop().nand(state.accumulator);
                 case POP -> {
                     if (!state.is2d) {
-                        state.data.remove(0);
+                        state.popStack();
                     } else {
-                        state.accumulator = state.data.get(0).remove(0);
+                        state.accumulator = state.pop();
                     }
                 }
                 case PUSH -> {
                     if (!state.is2d) {
-                        state.data.add(new ArrayList<>());
+                        state.pushStack();
                     } else {
-                        state.data.get(0).add(0, state.accumulator);
+                        state.push(state.accumulator);
                     }
                 }
                 case END -> {
@@ -93,8 +87,8 @@ public class Program {
                 case DISCOURAGED -> state.discouraged = true;
                 case D1 -> state.is2d = false;
                 case D2 -> state.is2d = true;
-                case TRUE -> state.accumulator = StackValue.TRUE;
-                case FALSE -> state.accumulator = StackValue.FALSE;
+                case TRUE -> state.push(StackValue.TRUE);
+                case FALSE -> state.push(StackValue.FALSE);
                 case START -> {
                     if (!StackValue.ZERO.equals(state.accumulator) && !StackValue.FALSE.equals(state.accumulator))
                         break;
@@ -168,8 +162,8 @@ public class Program {
         DISCOURAGED('*'), // rainbow mode
         D2('2'), // set to 2d mode: push, pop, left and right act on the stack of values
         D1('1'), // set to 1d mode: push, pop, left and right act on the stack of stacks
-        TRUE('t'), // set the accumulator to true
-        FALSE('f'), // set the accumulator to false
+        TRUE('t'), // push true
+        FALSE('f'), // push false
         START('('), // start bf style loop
         END_START(')'); // end bf style loop
         
@@ -191,5 +185,29 @@ public class Program {
         public final List<List<StackValue>> data = new ArrayList<>(Collections.singleton(new ArrayList<>()));
         public StackValue accumulator = new StackValue.IntegerStackValue(0);
         public boolean discouraged = false;
+        
+        public void push(StackValue value) {
+            if (data.size() == 0)
+                throw new IllegalStateException("Empty top level stack!");
+            data.get(0).add(value);
+        }
+        
+        public StackValue pop() {
+            if (data.size() == 0)
+                throw new IllegalStateException("Empty top level stack!");
+            if (data.get(0).size() == 0)
+                throw new IllegalStateException("Empty value stack!");
+            return data.get(0).remove(0);
+        }
+        
+        public void pushStack() {
+            data.add(new ArrayList<>());
+        }
+        
+        public void popStack() {
+            if (data.size() == 0)
+                throw new IllegalStateException("Empty top level stack!");
+            data.remove(0);
+        }
     }
 }
